@@ -1,0 +1,707 @@
+Type OperationParam
+    OptCode As Integer
+    Param(1 To 3) As Integer
+End Type
+
+Public Sub D2_Part1()
+
+Dim DataPoints(0 To 20000) As Double
+
+
+c = 1
+
+
+Do While ActiveSheet.Cells(1, c) <> ""
+
+    DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+
+    c = c + 1
+    
+Loop
+
+MsgBox "Got Data"
+
+For t = 0 To c - 2 Step 4
+
+    a = DataPoints(t + 1)
+    b = DataPoints(t + 2)
+    d = DataPoints(t + 3)
+
+    Select Case DataPoints(t)
+    
+        Case 99:
+            Exit For
+        Case 1:
+            DataPoints(d) = DataPoints(a) + DataPoints(b)
+        
+        Case 2:
+            DataPoints(d) = DataPoints(a) * DataPoints(b)
+            
+        Case Else:
+            MsgBox "Invalid operation"
+            
+            Exit For
+    End Select
+    
+
+Next
+
+    MsgBox "Position 0 contains: " & DataPoints(0)
+
+End Sub
+
+Public Sub D2_Part2()
+
+Dim DataPoints(0 To 20000) As Double
+
+For noun = 0 To 99
+    For Verb = 0 To 99
+        c = 1
+        
+        
+        Do While ActiveSheet.Cells(1, c) <> ""
+        
+            DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+        
+            c = c + 1
+            
+        Loop
+        
+        DataPoints(1) = noun
+        DataPoints(2) = Verb
+        
+        For t = 0 To c - 2 Step 4
+        
+            a = DataPoints(t + 1)
+            b = DataPoints(t + 2)
+            d = DataPoints(t + 3)
+        
+            Select Case DataPoints(t)
+            
+                Case 99:
+                    Exit For
+                Case 1:
+                    DataPoints(d) = DataPoints(a) + DataPoints(b)
+                
+                Case 2:
+                    DataPoints(d) = DataPoints(a) * DataPoints(b)
+                    
+                Case Else:
+                    MsgBox "Invalid operation"
+                    
+                    Exit For
+            End Select
+        
+        Next
+        
+        If DataPoints(0) = 19690720 Then
+            MsgBox "X,Y, Answer" & noun & ", " & Verb & ", " & 100 * noun + Verb
+            End
+        End If
+        
+    Next Verb
+Next noun
+
+End Sub
+
+Public Sub D3_P1()
+
+Dim Direction(1 To 2, 1 To 301, 1 To 2) As Integer
+Dim Dist(1 To 2, 1 To 301) As Integer
+Dim Grd() As Byte
+
+'Get data
+
+For wire = 1 To 2
+
+datainput = 1
+
+Do While ActiveSheet.Cells(datainput, wire) <> ""
+
+    temp = ActiveSheet.Cells(datainput, wire).value
+    
+    Select Case Left(temp, 1)
+        Case "L":
+            Direction(wire, datainput, 1) = -1
+        Case "R":
+            Direction(wire, datainput, 1) = 1
+        Case "U":
+            Direction(wire, datainput, 2) = 1
+        Case "D":
+            Direction(wire, datainput, 2) = -1
+        Case Else:
+            MsgBox "Data error"
+    End Select
+    
+    Dist(wire, datainput) = Right(temp, Len(temp) - 1)
+
+    datainput = datainput + 1
+    
+Loop
+
+Next wire
+
+'MsgBox ("Got Data!")
+
+'calcualte grid size
+
+xmin = 0
+xmax = 0
+ymin = 0
+ymax = 0
+
+
+For wire = 1 To 2
+    x = 0
+    y = 0
+    
+    For datainput = 1 To 301
+            
+        x = x + Direction(wire, datainput, 1) * Dist(wire, datainput)
+        y = y + Direction(wire, datainput, 2) * Dist(wire, datainput)
+        
+        If x < xmin Then xmin = x
+        If x > xmax Then xmax = x
+        If y < ymin Then ymin = y
+        If y > ymax Then ymax = y
+        
+    Next datainput
+    
+'    MsgBox "Xmin: " & xmin & ", Xmax: " & xmax & ", Ymin: " & ymin & ", YMax: " & ymax
+    
+Next wire
+
+'PLot out wire 1
+
+ReDim Grd(xmin - 10 To xmax + 10, ymin - 10 To ymax + 10)
+
+x = 0
+y = 0
+
+wire = 1
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            Grd(xplot, y) = 1
+            x = xplot
+        Next xplot
+        
+    Else
+        For yplot = y To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            Grd(x, yplot) = 1
+            y = yplot
+        Next yplot
+    
+    End If
+
+Next datainput
+
+x = 0
+y = 0
+
+wire = 2
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            If Grd(xplot, y) = 1 Then Grd(xplot, y) = 2
+        Next xplot
+        
+        x = xplot
+    Else
+        For yplot = y To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            If Grd(x, yplot) = 1 Then Grd(x, yplot) = 2
+        Next yplot
+        
+        y = yplot
+    End If
+
+Next datainput
+
+Grd(0, 0) = 0
+
+Dim MinManHat As Double
+MinManHat = 10000
+
+For x = LBound(Grd, 1) To UBound(Grd, 1)
+    For y = LBound(Grd, 2) To UBound(Grd, 2)
+    
+        If Grd(x, y) = 2 Then
+            temp2 = Abs(x) + Abs(y)
+            If temp2 < MinManHat Then MinManHat = temp2
+        End If
+    Next y
+Next x
+
+MsgBox MinManHat
+
+End Sub
+
+Public Sub D3_P2()
+
+Dim Direction(1 To 2, 1 To 301, 1 To 2) As Integer
+Dim Dist(1 To 2, 1 To 301) As Integer
+Dim Grd() As Byte
+Dim Stps() As Double
+
+'Get data
+
+For wire = 1 To 2
+
+datainput = 1
+
+Do While ActiveSheet.Cells(datainput, wire) <> ""
+
+    temp = ActiveSheet.Cells(datainput, wire).value
+    
+    Select Case Left(temp, 1)
+        Case "L":
+            Direction(wire, datainput, 1) = -1
+        Case "R":
+            Direction(wire, datainput, 1) = 1
+        Case "U":
+            Direction(wire, datainput, 2) = 1
+        Case "D":
+            Direction(wire, datainput, 2) = -1
+        Case Else:
+            MsgBox "Data error"
+    End Select
+    
+    Dist(wire, datainput) = Right(temp, Len(temp) - 1)
+
+    datainput = datainput + 1
+    
+Loop
+
+Next wire
+
+'MsgBox ("Got Data!")
+
+'calcualte grid size
+
+xmin = 0
+xmax = 0
+ymin = 0
+ymax = 0
+
+
+For wire = 1 To 2
+    x = 0
+    y = 0
+    
+    For datainput = 1 To 301
+            
+        x = x + Direction(wire, datainput, 1) * Dist(wire, datainput)
+        y = y + Direction(wire, datainput, 2) * Dist(wire, datainput)
+        
+        If x < xmin Then xmin = x
+        If x > xmax Then xmax = x
+        If y < ymin Then ymin = y
+        If y > ymax Then ymax = y
+        
+    Next datainput
+    
+'    MsgBox "Xmin: " & xmin & ", Xmax: " & xmax & ", Ymin: " & ymin & ", YMax: " & ymax
+    
+Next wire
+
+'PLot out wire 1
+
+ReDim Grd(xmin - 10 To xmax + 10, ymin - 10 To ymax + 10)
+ReDim Stps(1 To 2, xmin - 10 To xmax + 10, ymin - 10 To ymax + 10)
+Dim steps As Double
+
+x = 0
+y = 0
+
+wire = 1
+steps = 0
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x + Direction(wire, datainput, 1) To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            Grd(xplot, y) = 1
+            steps = steps + 1
+            If Stps(wire, xplot, y) > 0 Then
+                Stps(wire, xplot, y) = WorksheetFunction.Min(Stps(wire, xplot, y), steps)
+            Else
+                Stps(wire, xplot, y) = steps
+            End If
+
+            x = xplot
+        Next xplot
+        
+    Else
+        For yplot = y + Direction(wire, datainput, 2) To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            Grd(x, yplot) = 1
+            steps = steps + 1
+            If Stps(wire, x, yplot) > 0 Then
+                Stps(wire, x, yplot) = WorksheetFunction.Min(Stps(wire, x, yplot), steps)
+            Else
+                Stps(wire, x, yplot) = steps
+            End If
+            y = yplot
+        Next yplot
+    
+    End If
+
+Next datainput
+
+x = 0
+y = 0
+wire = 2
+steps = 0
+
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x + Direction(wire, datainput, 1) To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            If Grd(xplot, y) = 1 Then Grd(xplot, y) = 2
+            steps = steps + 1
+            If Stps(wire, xplot, y) > 0 Then
+                Stps(wire, xplot, y) = WorksheetFunction.Min(Stps(wire, xplot, y), steps)
+            Else
+                Stps(wire, xplot, y) = steps
+            End If
+            x = xplot
+        Next xplot
+    Else
+        For yplot = y + Direction(wire, datainput, 2) To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            If Grd(x, yplot) = 1 Then Grd(x, yplot) = 2
+            steps = steps + 1
+            If Stps(wire, x, yplot) > 0 Then
+                Stps(wire, x, yplot) = WorksheetFunction.Min(Stps(wire, x, yplot), steps)
+            Else
+                Stps(wire, x, yplot) = steps
+            End If
+            y = yplot
+        Next yplot
+    End If
+
+Next datainput
+
+Grd(0, 0) = 0
+
+Dim MinManHat As Double
+MinManHat = 10000
+
+For x = LBound(Grd, 1) To UBound(Grd, 1)
+    For y = LBound(Grd, 2) To UBound(Grd, 2)
+    
+        If Grd(x, y) = 2 Then
+            temp2 = Stps(1, x, y) + Stps(2, x, y)
+            If temp2 < MinManHat Then MinManHat = temp2
+        End If
+    Next y
+Next x
+
+MsgBox MinManHat
+
+End Sub
+
+Public Sub D5_Part1()
+
+Dim InstructionType As OperationParam
+
+Dim DataPoints(0 To 20000) As Double
+
+Dim LastOutput As Double
+
+
+c = 1
+
+
+Do While ActiveSheet.Cells(1, c) <> ""
+
+    DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+
+    c = c + 1
+    
+Loop
+
+MsgBox "Got Data"
+
+t = 0
+
+InstructionType = ParseOperation(Str(DataPoints(t)))
+
+Do Until InstructionType.OptCode = 99
+
+    InstructionType = ParseOperation(Str(DataPoints(t)))
+   
+    With InstructionType
+    
+        If .OptCode = 99 Then
+            Exit Do
+        ElseIf .OptCode = 3 Then
+            d = DataPoints(t + 1)
+        ElseIf .OptCode = 4 Then
+            If .Param(1) = 0 Then
+                d = DataPoints(DataPoints(t + 1))
+            Else
+                d = DataPoints(t + 1)
+            End If
+        Else
+            If .Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If .Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+    '        If .Param(3) = 0 Then
+    '            d = DataPoints(DataPoints(t + 3))
+    '        Else
+                d = DataPoints(t + 3)
+    '        End if
+        End If
+    
+    End With
+    
+    Select Case InstructionType.OptCode
+    
+        Case 99:
+            Exit Do
+        Case 1:
+            DataPoints(d) = a + b
+            t = t + 4
+        Case 2:
+            DataPoints(d) = a * b
+            t = t + 4
+        Case 3:
+            DataPoints(d) = Val(InputBox("Input"))
+            t = t + 2
+        Case 4:
+            MsgBox "Output (t): " & d & " (" & t & ")"
+            LastOutput = d
+            t = t + 2
+        Case Else:
+            MsgBox "Invalid operation"
+            
+            Exit Do
+    End Select
+    
+
+Loop
+
+    MsgBox "Diagnostic Code: " & LastOutput
+
+End Sub
+Public Sub D5_Part2()
+
+Dim InstructionType As OperationParam
+
+Dim DataPoints(0 To 20000) As Double
+
+Dim LastOutput As Double
+
+
+c = 1
+
+
+Do While ActiveSheet.Cells(1, c) <> ""
+
+    DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+
+    c = c + 1
+    
+Loop
+
+MsgBox "Got Data"
+
+t = 0
+
+InstructionType = ParseOperation(Str(DataPoints(t)))
+
+Do Until InstructionType.OptCode = 99
+
+    InstructionType = ParseOperation(Str(DataPoints(t)))
+    
+    Select Case InstructionType.OptCode
+    
+        Case 99:    ' Exit Instruction
+            Exit Do
+            
+        Case 1:     ' Adding Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            d = DataPoints(t + 3)
+        
+            DataPoints(d) = a + b
+            t = t + 4
+            
+        Case 2:     ' Multiply Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            d = DataPoints(t + 3)
+        
+            DataPoints(d) = a * b
+            t = t + 4
+            
+        Case 3:     ' Input Instruction
+            d = DataPoints(t + 1)
+            
+            DataPoints(d) = Val(InputBox("Input"))
+            t = t + 2
+            
+        Case 4:     ' Output Instruction
+            If InstructionType.Param(1) = 0 Then
+                d = DataPoints(DataPoints(t + 1))
+            Else
+                d = DataPoints(t + 1)
+            End If
+            
+            MsgBox "Output (t): " & d & " (" & t & ")"
+            LastOutput = d
+            t = t + 2
+            
+        Case 5:     ' Jump if true Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            If a = 0 Then
+                t = t + 3
+            Else
+                t = b
+            End If
+            
+        Case 6:     ' Jump if false Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            If a = 0 Then
+                t = b
+            Else
+                t = t + 3
+            End If
+
+        Case 7:     ' less than Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            d = DataPoints(t + 3)
+        
+            If a < b Then
+                DataPoints(d) = 1
+            Else
+                DataPoints(d) = 0
+            End If
+            t = t + 4
+            
+        Case 8:     ' equal to Instruction
+            If InstructionType.Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If InstructionType.Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            d = DataPoints(t + 3)
+        
+            If a = b Then
+                DataPoints(d) = 1
+            Else
+                DataPoints(d) = 0
+            End If
+            t = t + 4
+
+        Case Else:
+            MsgBox "Invalid operation"
+            
+            Exit Do
+            
+    End Select
+
+Loop
+
+    MsgBox "Diagnostic Code: " & LastOutput
+
+End Sub
+
+Function ParseOperation(value As String) As OperationParam
+
+    Dim temp As OperationParam
+
+    value = Trim(value)
+
+    temp.OptCode = Right(value, 2)
+
+    If Len(value) > 2 Then
+        value = Left(value, Len(value) - 2)
+    Else
+        value = ""
+    End If
+
+    p = 1
+    Do While Len(value) > 0
+        temp.Param(p) = Right(value, 1)
+        value = Left(value, Len(value) - 1)
+
+        p = p + 1
+    Loop
+
+    ParseOperation = temp
+
+End Function
