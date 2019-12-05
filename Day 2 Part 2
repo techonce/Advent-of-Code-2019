@@ -1,0 +1,52 @@
+Public Sub D2_Part2()
+
+Dim DataPoints(0 To 20000) As Double
+
+For noun = 0 To 99
+    For Verb = 0 To 99
+        c = 1
+        
+        Do While ActiveSheet.Cells(1, c) <> ""
+        
+            DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+        
+            c = c + 1
+            
+        Loop
+        
+        DataPoints(1) = noun
+        DataPoints(2) = Verb
+        
+        For t = 0 To c - 2 Step 4
+        
+            a = DataPoints(t + 1)
+            b = DataPoints(t + 2)
+            d = DataPoints(t + 3)
+        
+            Select Case DataPoints(t)
+            
+                Case 99:
+                    Exit For
+                Case 1:
+                    DataPoints(d) = DataPoints(a) + DataPoints(b)
+                
+                Case 2:
+                    DataPoints(d) = DataPoints(a) * DataPoints(b)
+                    
+                Case Else:
+                    MsgBox "Invalid operation"
+                    
+                    Exit For
+            End Select
+        
+        Next
+        
+        If DataPoints(0) = 19690720 Then
+            MsgBox "X,Y, Answer" & noun & ", " & Verb & ", " & 100 * noun + Verb
+            End
+        End If
+        
+    Next Verb
+Next noun
+
+End Sub
