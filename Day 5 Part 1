@@ -1,0 +1,91 @@
+Type OperationParam
+    OptCode As Integer
+    Param(1 To 3) As Integer
+End Type
+
+Public Sub D5_Part1()
+
+Dim InstructionType As OperationParam
+
+Dim DataPoints(0 To 20000) As Double
+
+Dim LastOutput As Double
+
+c = 1
+
+Do While ActiveSheet.Cells(1, c) <> ""
+
+    DataPoints(c - 1) = ActiveSheet.Cells(1, c).value
+
+    c = c + 1
+    
+Loop
+
+MsgBox "Got Data"
+
+t = 0
+
+InstructionType = ParseOperation(Str(DataPoints(t)))
+
+Do Until InstructionType.OptCode = 99
+
+    InstructionType = ParseOperation(Str(DataPoints(t)))
+   
+    With InstructionType
+    
+        If .OptCode = 99 Then
+            Exit Do
+        ElseIf .OptCode = 3 Then
+            d = DataPoints(t + 1)
+        ElseIf .OptCode = 4 Then
+            If .Param(1) = 0 Then
+                d = DataPoints(DataPoints(t + 1))
+            Else
+                d = DataPoints(t + 1)
+            End If
+        Else
+            If .Param(1) = 0 Then
+                a = DataPoints(DataPoints(t + 1))
+            Else
+                a = DataPoints(t + 1)
+            End If
+            
+            If .Param(2) = 0 Then
+                b = DataPoints(DataPoints(t + 2))
+            Else
+                b = DataPoints(t + 2)
+            End If
+            
+            d = DataPoints(t + 3)
+        End If
+    
+    End With
+    
+    Select Case InstructionType.OptCode
+    
+        Case 99:
+            Exit Do
+        Case 1:
+            DataPoints(d) = a + b
+            t = t + 4
+        Case 2:
+            DataPoints(d) = a * b
+            t = t + 4
+        Case 3:
+            DataPoints(d) = Val(InputBox("Input"))
+            t = t + 2
+        Case 4:
+            MsgBox "Output (t): " & d & " (" & t & ")"
+            LastOutput = d
+            t = t + 2
+        Case Else:
+            MsgBox "Invalid operation"
+            
+            Exit Do
+    End Select
+
+Loop
+
+    MsgBox "Diagnostic Code: " & LastOutput
+
+End Sub
