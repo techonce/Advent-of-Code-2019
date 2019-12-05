@@ -1,0 +1,132 @@
+Public Sub D3_P1()
+
+Dim Direction(1 To 2, 1 To 301, 1 To 2) As Integer
+Dim Dist(1 To 2, 1 To 301) As Integer
+Dim Grd() As Byte
+
+'Get data
+
+For wire = 1 To 2
+
+datainput = 1
+
+Do While ActiveSheet.Cells(datainput, wire) <> ""
+
+    temp = ActiveSheet.Cells(datainput, wire).value
+    
+    Select Case Left(temp, 1)
+        Case "L":
+            Direction(wire, datainput, 1) = -1
+        Case "R":
+            Direction(wire, datainput, 1) = 1
+        Case "U":
+            Direction(wire, datainput, 2) = 1
+        Case "D":
+            Direction(wire, datainput, 2) = -1
+        Case Else:
+            MsgBox "Data error"
+    End Select
+    
+    Dist(wire, datainput) = Right(temp, Len(temp) - 1)
+
+    datainput = datainput + 1
+    
+Loop
+
+Next wire
+
+'MsgBox ("Got Data!")
+
+'calcualte grid size
+
+xmin = 0
+xmax = 0
+ymin = 0
+ymax = 0
+
+For wire = 1 To 2
+    x = 0
+    y = 0
+    
+    For datainput = 1 To 301
+            
+        x = x + Direction(wire, datainput, 1) * Dist(wire, datainput)
+        y = y + Direction(wire, datainput, 2) * Dist(wire, datainput)
+        
+        If x < xmin Then xmin = x
+        If x > xmax Then xmax = x
+        If y < ymin Then ymin = y
+        If y > ymax Then ymax = y
+        
+    Next datainput
+    
+Next wire
+
+'PLot out wire 1
+
+ReDim Grd(xmin - 10 To xmax + 10, ymin - 10 To ymax + 10)
+
+x = 0
+y = 0
+
+wire = 1
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            Grd(xplot, y) = 1
+            x = xplot
+        Next xplot
+        
+    Else
+        For yplot = y To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            Grd(x, yplot) = 1
+            y = yplot
+        Next yplot
+    
+    End If
+
+Next datainput
+
+x = 0
+y = 0
+
+wire = 2
+
+For datainput = 1 To 301
+    
+    If Direction(wire, datainput, 1) <> 0 Then
+        For xplot = x To x + Direction(wire, datainput, 1) * Dist(wire, datainput) Step Direction(wire, datainput, 1)
+            If Grd(xplot, y) = 1 Then Grd(xplot, y) = 2
+        Next xplot
+        
+        x = xplot
+    Else
+        For yplot = y To y + Direction(wire, datainput, 2) * Dist(wire, datainput) Step Direction(wire, datainput, 2)
+            If Grd(x, yplot) = 1 Then Grd(x, yplot) = 2
+        Next yplot
+        
+        y = yplot
+    End If
+
+Next datainput
+
+Grd(0, 0) = 0
+
+Dim MinManHat As Double
+MinManHat = 10000
+
+For x = LBound(Grd, 1) To UBound(Grd, 1)
+    For y = LBound(Grd, 2) To UBound(Grd, 2)
+    
+        If Grd(x, y) = 2 Then
+            temp2 = Abs(x) + Abs(y)
+            If temp2 < MinManHat Then MinManHat = temp2
+        End If
+    Next y
+Next x
+
+MsgBox MinManHat
+
+End Sub
